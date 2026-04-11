@@ -5,20 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OneFifty | The pure truth, strictly in 150 words.</title>
     <style>
-        /* Minimalist, content-focused styling */
+        /* Subtle, formal, editorial styling */
         :root {
-            --bg-color: #f9f9f9;
-            --text-main: #111111;
-            --text-muted: #555555;
-            --accent: #2c2c2c;
-            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --bg-color: #fdfdfd; /* Very slightly off-white to reduce eye strain */
+            --text-main: #222222; /* Softer black for formal reading */
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+            --font-heading: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            --font-body: 'Georgia', 'Times New Roman', serif; /* Serif for that traditional news feel */
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: var(--font-family);
-            line-height: 1.6;
             margin: 0;
             padding: 0;
             display: flex;
@@ -26,83 +25,110 @@
             align-items: center;
         }
 
-        /* Centered column for readability */
+        /* Central column */
         header, main, footer {
             width: 100%;
-            max-width: 600px; /* Narrow width forces focus on the short text */
-            padding: 20px;
+            max-width: 650px; 
+            padding: 20px 30px;
             box-sizing: border-box;
         }
 
         header {
-            border-bottom: 2px solid var(--accent);
-            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            padding-top: 40px;
+            padding-bottom: 20px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: baseline;
         }
 
+        /* Slim, elegant logo */
         header h1 {
             margin: 0;
-            font-size: 2rem;
-            letter-spacing: -1px;
+            font-family: var(--font-heading);
+            font-size: 2.2rem;
+            font-weight: 300; /* Forces the slim look */
+            letter-spacing: 0.5px;
+            color: #000000;
         }
 
         nav a {
-            color: var(--text-main);
+            font-family: var(--font-heading);
+            color: var(--text-muted);
             text-decoration: none;
-            font-weight: bold;
-            margin-left: 15px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-left: 20px;
+            transition: color 0.2s ease;
         }
 
         nav a:hover {
-            text-decoration: underline;
+            color: var(--text-main);
         }
 
-        .article-card {
-            background: #ffffff;
-            padding: 25px;
-            margin-bottom: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        .article-block {
+            margin-bottom: 40px;
+            padding-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Remove border from the last article */
+        .article-block:last-of-type {
+            border-bottom: none;
         }
 
         .article-title {
-            margin: 0 0 10px 0;
-            font-size: 1.4rem;
+            margin: 0 0 8px 0;
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            font-weight: 600;
+            line-height: 1.2;
         }
 
         .article-meta {
-            font-size: 0.85rem;
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             color: var(--text-muted);
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .article-meta span::after {
+            content: " • ";
+            margin: 0 5px;
+        }
+
+        .article-meta span:last-child::after {
+            content: "";
         }
 
         .article-content {
-            font-size: 1.05rem;
-            text-align: justify; /* Gives a neat newspaper feel */
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            line-height: 1.7;
+            text-align: justify;
+            margin: 0 0 15px 0;
         }
 
+        /* Clean, minimalist word count */
         .word-count {
-            display: inline-block;
-            margin-top: 15px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            background: #eee;
-            padding: 4px 8px;
-            border-radius: 4px;
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-style: italic;
             color: var(--text-muted);
         }
 
         footer {
             text-align: center;
-            font-size: 0.9rem;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
             color: var(--text-muted);
-            margin-top: 40px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
+            margin-top: 20px;
+            margin-bottom: 40px;
         }
     </style>
 </head>
@@ -117,10 +143,10 @@
     </header>
 
     <main>
-        <article class="article-card">
+        <article class="article-block">
             <h2 class="article-title">New Solar Farm Initiated in Rajasthan</h2>
             <div class="article-meta">
-                <span>By Anonymous Contributor</span>
+                <span>Anonymous Contributor</span>
                 <span>April 11, 2026</span>
             </div>
             <p class="article-content">
@@ -129,10 +155,10 @@
             <span class="word-count">132 / 150 Words</span>
         </article>
 
-        <article class="article-card">
+        <article class="article-block">
             <h2 class="article-title">Local Transport Union Announces Strike</h2>
             <div class="article-meta">
-                <span>By Delhi Resident</span>
+                <span>Delhi Resident</span>
                 <span>April 11, 2026</span>
             </div>
             <p class="article-content">
