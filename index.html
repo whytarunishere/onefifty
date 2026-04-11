@@ -2,10 +2,149 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>NEWS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneFifty | The pure truth, strictly in 150 words.</title>
+    <style>
+        /* Minimalist, content-focused styling */
+        :root {
+            --bg-color: #f9f9f9;
+            --text-main: #111111;
+            --text-muted: #555555;
+            --accent: #2c2c2c;
+            --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Centered column for readability */
+        header, main, footer {
+            width: 100%;
+            max-width: 600px; /* Narrow width forces focus on the short text */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        header {
+            border-bottom: 2px solid var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2rem;
+            letter-spacing: -1px;
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+
+        nav a:hover {
+            text-decoration: underline;
+        }
+
+        .article-card {
+            background: #ffffff;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .article-title {
+            margin: 0 0 10px 0;
+            font-size: 1.4rem;
+        }
+
+        .article-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .article-content {
+            font-size: 1.05rem;
+            text-align: justify; /* Gives a neat newspaper feel */
+        }
+
+        .word-count {
+            display: inline-block;
+            margin-top: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #eee;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>ONE FIFTY</h1>
+
+    <header>
+        <h1>OneFifty.</h1>
+        <nav>
+            <a href="#">Read</a>
+            <a href="#">Write</a>
+        </nav>
+    </header>
+
+    <main>
+        <article class="article-card">
+            <h2 class="article-title">New Solar Farm Initiated in Rajasthan</h2>
+            <div class="article-meta">
+                <span>By Anonymous Contributor</span>
+                <span>April 11, 2026</span>
+            </div>
+            <p class="article-content">
+                The state government has finalized land acquisition for a new 500MW solar energy park in the Thar Desert. Construction begins next month, targeting completion by late 2027. This initiative aims to offset power shortages in neighboring industrial zones and reduce reliance on coal imports. Funding relies on a public-private partnership, with local farmers receiving equity in exchange for arid land usage. Critics note that while renewable energy is vital, the transmission infrastructure remains outdated and may struggle to integrate the sudden influx of grid power. Planners argue that synchronized upgrades to local substations will mitigate this risk. The project is expected to generate 2,000 temporary construction jobs and 150 permanent maintenance roles. Final environmental clearance was granted yesterday following a rapid, localized ecological impact assessment.
+            </p>
+            <span class="word-count">132 / 150 Words</span>
+        </article>
+
+        <article class="article-card">
+            <h2 class="article-title">Local Transport Union Announces Strike</h2>
+            <div class="article-meta">
+                <span>By Delhi Resident</span>
+                <span>April 11, 2026</span>
+            </div>
+            <p class="article-content">
+                Transport unions representing private bus operators have announced an indefinite strike starting midnight tomorrow. The core demand is an immediate revision of fare caps, which have remained stagnant despite a 15% rise in operational fuel costs over the last six months. The strike will affect approximately 40% of daily commuter routes, heavily impacting suburban transit. Government representatives stated they are willing to form a committee to review fare structures but refuse to negotiate while a strike threatens public mobility. Emergency state buses have been drafted to cover high-volume routes, though severe delays are anticipated during morning peak hours. Commuters are advised to utilize metro services where available or arrange carpooling. Further union negotiations are scheduled for Tuesday evening.
+            </p>
+            <span class="word-count">124 / 150 Words</span>
+        </article>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 OneFifty. The news, distilled.</p>
+    </footer>
+
 </body>
 </html>
