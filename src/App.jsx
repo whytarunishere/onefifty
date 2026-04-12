@@ -6,7 +6,7 @@ function App() {
       {/* Header Section */}
       <header className="main-header">
         <div className="logo-container">
-          <h1>ONEFIFTY 150 150</h1>
+          <h1>ONEFIFTY</h1>
           <p className="slogan">The news, distilled.</p>
         </div>
         <nav className="main-nav">
