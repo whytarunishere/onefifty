@@ -1,28 +1,40 @@
-import './App.css';
+import React from 'react';
+import './App.css'; // Importing the separated styles
 
-function App() {
+export default function App() {
   return (
     <div className="app-container">
-      {/* Header Section */}
-      <header className="main-header">
-        <div className="logo-container">
-          <h1>ONEFIFTY</h1>
-          <p className="slogan">The news, distilled.</p>
+      {/* Header Wrapper contains Logo and Both Navbars */}
+      <div className="header-wrapper">
+        <div className="top-header">
+          <div className="logo-container">
+            <img src="1 0.png" alt="150 Logo" className="site-logo" />
+            <p className="slogan">The news, distilled.</p>
+          </div>
+          <nav className="utility-nav">
+            <a href="#read">READ</a> <span className="divider">|</span>
+            <a href="#write">WRITE</a> <span className="divider">|</span>
+            <a href="#about">ABOUT</a>
+          </nav>
         </div>
-        <nav className="main-nav">
-          <a href="#read">READ</a> <span className="divider">|</span>
-          <a href="#write">WRITE</a> <span className="divider">|</span>
-          <a href="#about">ABOUT</a>
+
+        {/* New Horizontal Category Navbar */}
+        <nav className="category-nav">
+          <a href="#latest">Latest</a>
+          <a href="#nation">Nation</a>
+          <a href="#states">States</a>
+          <a href="#economy">Economy</a>
+          <a href="#grassroots">Grassroots</a>
+          <a href="#voices">Unheard Voices</a>
         </nav>
-      </header>
+      </div>
 
       <main>
         {/* Hero Banner Section */}
         <section className="hero-section">
           <div className="hero-image-container">
-            {/* Using a placeholder Indian street image to match the vibe */}
             <img 
-              src="https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop" 
+              src="[https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop](https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop)" 
               alt="Voice of the people" 
               className="hero-image"
             />
@@ -67,5 +79,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

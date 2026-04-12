@@ -24,57 +24,82 @@ body {
 }
 
 /* Restrict the width to make it look like a cohesive editorial page */
-.main-header, main, footer {
+.header-wrapper, main, footer {
   width: 100%;
-  max-width: 1000px; /* Expanded width to accommodate the large hero image */
+  max-width: 1000px; 
   padding: 0 20px;
   box-sizing: border-box;
 }
 
-/* Header & Navigation */
-.main-header {
+/* Top Header Area (Logo & Utility Links) */
+.top-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   padding-top: 30px;
-  padding-bottom: 20px;
+  padding-bottom: 15px;
 }
 
-.logo-container h1 {
-  margin: 0;
-  font-family: var(--font-sans);
-  font-size: 2.8rem;
-  font-weight: 300; /* Slim logo font */
-  letter-spacing: 0.5px;
-  color: #000;
+.site-logo {
+  height: 75px;
+  width: auto;
+  display: block;
 }
 
 .logo-container .slogan {
-  margin: 5px 0 0 2px;
-  font-size: 1rem;
+  margin: 8px 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: bold;
   color: var(--text-main);
 }
 
-.main-nav {
+.utility-nav {
   display: flex;
   align-items: center;
   margin-top: 15px;
 }
 
-.main-nav a {
+.utility-nav a {
   color: #000;
   text-decoration: none;
   font-size: 0.95rem;
   letter-spacing: 1px;
 }
 
-.main-nav a:hover {
+.utility-nav a:hover {
   text-decoration: underline;
 }
 
 .divider {
   margin: 0 12px;
   color: #000;
+}
+
+/* --- NEW HORIZONTAL CATEGORY NAVBAR --- */
+.category-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 12px 0;
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #111;
+  margin-bottom: 35px;
+  width: 100%;
+}
+
+.category-nav a {
+  color: #111;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: opacity 0.2s;
+}
+
+.category-nav a:hover {
+  opacity: 0.6;
 }
 
 /* Hero Section */
