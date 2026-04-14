@@ -1,55 +1,33 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/logo1.png";
+import logo from "../assets/logo1_white.png";
 
 export default function Navbar() {
-	return (
-		<div className="NAVBAR mx-auto w-full max-w-[1000px] px-5">
-			<div className="flex items-start justify-between gap-4 py-0">
-				<div className="flex flex-col items-start">
-					<Link to="/">
-						<img src={logo} alt="150 Logo" className="block h-[75px] w-auto" />
-					</Link>
-					<p className="ml-1 mt-2 text-[1.05rem] font-bold text-[#111111]">
-						The news, distilled.
-					</p>
-				</div>
+  return (
+    <div className="w-full bg-black text-white">
+      {/* Top Part: Logo and Primary Links */}
+      <div className="flex items-center justify-between px-10 py-6">
+        <Link to="/">
+          <img src={logo} alt="Logo" className="h-24 w-auto brightness-0 invert" />
+        </Link>
 
-				<nav className="mt-4 flex items-center text-[0.95rem] tracking-[1px] text-black">
-					<Link to="/read" className="hover:underline">
-						READ
-					</Link>
-					<span className="mx-3">|</span>
-					<Link to="/write" className="hover:underline">
-						WRITE
-					</Link>
-					<span className="mx-3">|</span>
-					<Link to="/about" className="hover:underline">
-						ABOUT
-					</Link>
-				</nav>
-			</div>
+        <nav className="flex gap-6 text-[0.8rem] tracking-[2px] font-light">
+          <Link href="/read" className="hover:opacity-60">READ</Link>
+          <span className="opacity-30">|</span>
+          <Link href="/write" className="hover:opacity-60">WRITE</Link>
+          <span className="opacity-30">|</span>
+		  
+          <Link href="/about" className="hover:opacity-60">ABOUT</Link>
+        </nav>
+      </div>
 
-			<nav className="mb-9 flex w-full flex-wrap justify-center gap-8 border-y border-[#111] py-3 text-[0.85rem] font-semibold uppercase tracking-[1px] text-[#111]">
-				<Link to="/latest" className="transition-opacity duration-200 hover:opacity-60">
-					Latest
-				</Link>
-				<Link
-					to="/investigations"
-					className="transition-opacity duration-200 hover:opacity-60"
-				>
-					Investigations
-				</Link>
-				<Link
-					to="/corroborations"
-					className="transition-opacity duration-200 hover:opacity-60"
-				>
-					Corroboration
-				</Link>
-				<Link to="/impact" className="transition-opacity duration-200 hover:opacity-60">
-					Impact
-				</Link>
-			</nav>
-		</div>
-	);
+      {/* Bottom Part: Category Links */}
+      <nav className="flex justify-center gap-10 border-t border-white/10 py-4 text-[0.75rem] uppercase tracking-widest text-white/70">
+        <Link to="/latest" className="hover:text-white transition-colors">Latest</Link>
+        <Link to="/investigations" className="hover:text-white transition-colors">Investigations</Link>
+        <Link to="/impact" className="hover:text-white transition-colors">Impact</Link>
+		<Link to="/corroborations" className="hover:text-white transition-colors">Corroborations</Link>
+      </nav>
+    </div>
+  );
 }
