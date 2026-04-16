@@ -1,33 +1,26 @@
-import React from "react";
+import { Plus, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo1_white.png";
 
-export default function Navbar() {
+export default function Navbar({ isWriting, setIsWriting }) {
   return (
-    <div className="w-full bg-black text-white">
-      {/* Top Part: Logo and Primary Links */}
-      <div className="flex items-center justify-between px-10 py-6">
+    <div className="sticky top-0 z-50 w-full bg-black text-white border-b border-white/10">
+      <div className="flex items-center justify-between px-10 py-2">
         <Link to="/">
-          <img src={logo} alt="Logo" className="h-24 w-auto brightness-0 invert" />
+          <img src={logo} alt="Logo" className="h-20 w-auto brightness-0 invert" />
         </Link>
 
-        <nav className="flex gap-6 text-[0.8rem] tracking-[2px] font-light">
-          <Link href="/read" className="hover:opacity-60">READ</Link>
-          <span className="opacity-30">|</span>
-          <Link href="/write" className="hover:opacity-60">WRITE</Link>
-          <span className="opacity-30">|</span>
-		  
-          <Link href="/about" className="hover:opacity-60">ABOUT</Link>
-        </nav>
+        <button 
+          onClick={() => setIsWriting(!isWriting)}
+          className="flex items-center gap-2 bg-amber-500 text-black px-6 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-white transition-colors"
+        >
+          {isWriting ? (
+            <><ArrowLeft size={14} /> Back to Feed</>
+          ) : (
+            <><Plus size={14} /> Create a Print</>
+          )}
+        </button>
       </div>
-
-      {/* Bottom Part: Category Links */}
-      <nav className="flex justify-center gap-10 border-t border-white/10 py-4 text-[0.75rem] uppercase tracking-widest text-white/70">
-        <Link to="/latest" className="hover:text-white transition-colors">Latest</Link>
-        <Link to="/investigations" className="hover:text-white transition-colors">Investigations</Link>
-        <Link to="/impact" className="hover:text-white transition-colors">Impact</Link>
-		<Link to="/corroborations" className="hover:text-white transition-colors">Corroborations</Link>
-      </nav>
     </div>
   );
 }
