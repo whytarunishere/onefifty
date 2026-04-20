@@ -1,2 +1,62 @@
 @import "tailwindcss";
 
+@layer base {
+  /* ... existing grain code ... */
+
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink {
+    50% { border-color: transparent }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-typewriter {
+    animation: 
+      typing 3.5s steps(40, end),
+      blink .75s step-end infinite;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out 3.5s forwards;
+    opacity: 0; /* Starts hidden until typewriter finishes */
+  }
+}
+ @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Target the specific class from the typewriter library */
+  .Typewriter__cursor {
+    display: inline-block;
+    font-family: monospace;
+    color: white;
+    font-weight: 100; /* Thin cursor looks better with bold text */
+    margin-left: 4px;
+    animation: blink 1s step-end infinite;
+  }
+
+.font-news{
+    font-family: monospace;
+    font-weight: 500;
+}
+@layer utilities {
+  @keyframes float {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(30px, -50px) rotate(2deg); }
+    66% { transform: translate(-20px, 20px) rotate(-2deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+  }
+
+  .animate-float {
+    animation: float linear infinite;
+  }
+}
+
