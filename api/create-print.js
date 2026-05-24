@@ -25,9 +25,13 @@ export default async function handler(req, res) {
     const db = await connectToDatabase();
     const collection = db.collection('prints');
 
+    if (!req.body || typeof req.body.headline !== 'string') {
+      return res.status(400).json({ error: 'headline is required' });
+    }
+
     // Prepare the document to insert
     const newPrint = {
-      content: req.body.headline, // This matches what you sent in Createpost.jsx
+      content: req.body.headline.trim(),
       author_name: "Anonymous Contributor", // Hardcoded until you add login
       is_verified: false,
       reprints: 0,
@@ -40,6 +44,10 @@ export default async function handler(req, res) {
     return res.status(200).json({ success: true, printId: result.insertedId });
   } catch (error) {
     console.error("Database Error:", error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      detail: error instanceof Error ? error.message : 'Unknown server error',
+    });
   }
 }
