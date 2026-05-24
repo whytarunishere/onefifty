@@ -26,7 +26,9 @@ export const Createpost = ({ onCancel }) => {
         setHeadline(""); // Clear the box
         onCancel(); // Close the "Printing Press" and go back to feed
       } else {
-        alert("Error: " + data.error);
+        const errorMessage = data.detail ? `${data.error}: ${data.detail}` : data.error;
+        console.error("Print API error:", data);
+        alert("Error: " + errorMessage);
       }
     } catch (error) {
       console.error("Error printing:", error);
