@@ -2,11 +2,17 @@ import { MongoClient } from 'mongodb';
 
 // Cache the database connection in serverless environments
 let cachedDb = null;
+const DATABASE_NAME = 'onefifty_db';
 
 async function connectToDatabase() {
   if (cachedDb) return cachedDb;
+
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is not configured');
+  }
+
   const client = await MongoClient.connect(process.env.MONGODB_URI);
-  cachedDb = client.db('userdb'); // Name your database here
+  cachedDb = client.db(DATABASE_NAME);
   return cachedDb;
 }
 
