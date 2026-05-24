@@ -7,7 +7,7 @@ import App from './App.jsx'
 const router = createBrowserRouter([
   {
     path : "/",
-    element : <App />,
+    element : <App/>,
     errorElement : <div>404 Not Found</div>
   }
 ]);
