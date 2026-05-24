@@ -223,14 +223,26 @@ export default defineConfig(({ mode }) => {
                 const payload = verifyAuthToken(token, env.JWT_SECRET)
                 const body = await readJsonBody(req)
                 const headline = typeof body.headline === 'string' ? body.headline.trim() : ''
+                const content = typeof body.content === 'string' ? body.content.trim() : ''
 
                 if (!headline) {
                   sendJson(res, 400, { error: 'headline is required' })
                   return
                 }
 
+                if (headline.length > 100) {
+                  sendJson(res, 400, { error: 'headline too long' })
+                  return
+                }
+
+                if (content.length > 2000) {
+                  sendJson(res, 400, { error: 'content too long' })
+                  return
+                }
+
                 const result = await db.collection('prints').insertOne({
-                  content: headline,
+                  headline,
+                  content,
                   author_name: payload.name || 'Anonymous Contributor',
                   author_id: String(payload.sub),
                   is_verified: false,
@@ -240,6 +252,51 @@ export default defineConfig(({ mode }) => {
                 })
 
                 sendJson(res, 200, { success: true, printId: result.insertedId })
+                return
+              }
+
+              if (path === '/api/delete-print' && req.method === 'DELETE') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const id = body && (body.id || body._id)
+                if (!id) {
+                  sendJson(res, 400, { error: 'id is required' })
+                  return
+                }
+
+                let objectId
+                try {
+                  const raw = typeof id === 'object' && id.$oid ? id.$oid : String(id)
+                  objectId = new ObjectId(raw)
+                } catch (err) {
+                  sendJson(res, 400, { error: 'invalid id' })
+                  return
+                }
+
+                const existing = await db.collection('prints').findOne({ _id: objectId })
+                if (!existing) {
+                  sendJson(res, 404, { error: 'Print not found' })
+                  return
+                }
+
+                if (String(existing.author_id) !== String(payload.sub)) {
+                  sendJson(res, 403, { error: 'Forbidden' })
+                  return
+                }
+
+                await db.collection('prints').deleteOne({ _id: objectId })
+                sendJson(res, 200, { success: true })
                 return
               }
 

@@ -4,11 +4,23 @@ import { getAuthHeaders } from '../lib/auth';
 export const Createpost = ({ onCancel }) => {
   // 1. State to store the input
   const [headline, setHeadline] = useState("");
+  const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 2. Function to send data to the server
+  const MAX_HEADLINE = 100;
+  const MAX_CONTENT = 2000;
+
   const handlePrint = async () => {
-    if (!headline.trim()) return; // Don't print empty space
+    if (!headline.trim()) return; // Don't print empty headline
+    if (headline.trim().length > MAX_HEADLINE) {
+      alert(`Headline must be ${MAX_HEADLINE} characters or fewer`);
+      return;
+    }
+    if (content.trim().length > MAX_CONTENT) {
+      alert(`Content must be ${MAX_CONTENT} characters or fewer`);
+      return;
+    }
     
     setIsSubmitting(true);
 
@@ -20,14 +32,15 @@ export const Createpost = ({ onCancel }) => {
           'Content-Type': 'application/json',
           ...getAuthHeaders(),
         },
-        body: JSON.stringify({ headline: headline })
+        body: JSON.stringify({ headline: headline.trim(), content: content.trim() })
       });
 
       const data = await response.json();
 
       if (response.ok) {
         alert("Printed successfully!"); // Replace with a toast notification later if you want
-        setHeadline(""); // Clear the box
+        setHeadline(""); // Clear the boxes
+        setContent("");
         onCancel(); // Close the "Printing Press" and go back to feed
       } else {
         const errorMessage = data.detail ? `${data.error}: ${data.detail}` : data.error;
@@ -36,7 +49,7 @@ export const Createpost = ({ onCancel }) => {
       }
     } catch (error) {
       console.error("Error printing:", error);
-      alert("Failed to connect to the press.");
+        alert("Failed to connect to the press.");
     } finally {
       setIsSubmitting(false);
     }
@@ -51,10 +64,28 @@ export const Createpost = ({ onCancel }) => {
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
           disabled={isSubmitting}
-          className="w-full bg-transparent border-none text-2xl md:text-4xl font-serif placeholder-[#8f8f8f] focus:ring-0 resize-none min-h-50 text-[#111111]"
+          className="w-full bg-transparent border border-[#111111] p-6 text-3xl md:text-5xl font-serif placeholder-[#8f8f8f] focus:ring-0 resize-none min-h-[120px] text-[#111111]"
           placeholder="What's the headline?"
+          maxLength={100}
+          rows={3}
           autoFocus
         />
+
+        <div className="flex justify-between items-center mt-2">
+          <div className="text-[11px] text-[#8f8f8f]">{headline.length}/{MAX_HEADLINE}</div>
+          <div className="text-[11px] text-[#8f8f8f]">{content.length}/{MAX_CONTENT}</div>
+        </div>
+
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          disabled={isSubmitting}
+          className="w-full bg-transparent border-none mt-6 text-sm md:text-base font-sans placeholder-[#8f8f8f] focus:ring-0 resize-none min-h-30 text-[#444444]"
+          placeholder="Write the full dispatch (max 2000 characters)"
+          maxLength={2000}
+        />
+
+        
         
         <div className="flex justify-between items-center mt-8 pt-6 border-t border-[#ECECEC]">
           <div className="flex gap-6 text-[#666666]">
