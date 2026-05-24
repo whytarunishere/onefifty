@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getAuthHeaders } from '../lib/auth';
 
 export const Createpost = ({ onCancel }) => {
   // 1. State to store the input
@@ -15,7 +16,10 @@ export const Createpost = ({ onCancel }) => {
       // Send data to your Vercel API
       const response = await fetch('/api/create-print', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
         body: JSON.stringify({ headline: headline })
       });
 
@@ -40,29 +44,29 @@ export const Createpost = ({ onCancel }) => {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-zinc-900/40 border border-white/10 p-8 rounded-sm">
-        <h3 className="text-[10px] font-black uppercase tracking-[3px] text-amber-500 mb-6">Dispatch from the field</h3>
+      <div className="bg-white border border-[#ECECEC] p-8 rounded-sm">
+        <h3 className="text-[10px] font-black uppercase tracking-[3px] text-[#D92D20] mb-6">Dispatch from the field</h3>
         
         <textarea
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
           disabled={isSubmitting}
-          className="w-full bg-transparent border-none text-2xl md:text-4xl font-serif placeholder-zinc-800 focus:ring-0 resize-none min-h-[200px] text-white"
+          className="w-full bg-transparent border-none text-2xl md:text-4xl font-serif placeholder-[#8f8f8f] focus:ring-0 resize-none min-h-50 text-[#111111]"
           placeholder="What's the headline?"
           autoFocus
         />
         
-        <div className="flex justify-between items-center mt-8 pt-6 border-t border-white/5">
-          <div className="flex gap-6 text-zinc-500">
-            <button className="hover:text-white transition-colors text-[10px] font-bold">ADD SOURCE</button>
-            <button className="hover:text-white transition-colors text-[10px] font-bold">ATTACH MEDIA</button>
+        <div className="flex justify-between items-center mt-8 pt-6 border-t border-[#ECECEC]">
+          <div className="flex gap-6 text-[#666666]">
+            <button className="hover:text-[#111111] transition-colors text-[10px] font-bold">ADD SOURCE</button>
+            <button className="hover:text-[#111111] transition-colors text-[10px] font-bold">ATTACH MEDIA</button>
           </div>
           
           <div className="flex gap-4">
             <button 
               onClick={onCancel}
               disabled={isSubmitting}
-              className="text-zinc-500 hover:text-white text-[10px] font-black uppercase tracking-widest px-4 disabled:opacity-50"
+              className="text-[#666666] hover:text-[#111111] text-[10px] font-black uppercase tracking-widest px-4 disabled:opacity-50"
             >
               Discard
             </button>
@@ -70,7 +74,7 @@ export const Createpost = ({ onCancel }) => {
             <button 
               onClick={handlePrint}
               disabled={isSubmitting || !headline.trim()}
-              className="bg-white text-black px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-[#111111] text-white px-8 py-3 text-xs font-black uppercase tracking-widest hover:bg-[#D92D20] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "PRINTING..." : "PRINT"}
             </button>

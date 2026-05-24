@@ -1,20 +1,4 @@
-import { MongoClient } from 'mongodb';
-
-// Cache the database connection in serverless environments
-let cachedDb = null;
-const DATABASE_NAME = 'onefifty_db';
-
-async function connectToDatabase() {
-  if (cachedDb) return cachedDb;
-
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is not configured');
-  }
-
-  const client = await MongoClient.connect(process.env.MONGODB_URI);
-  cachedDb = client.db(DATABASE_NAME);
-  return cachedDb;
-}
+import { getDb } from './_lib/db.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -22,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const db = await connectToDatabase();
+    const db = await getDb();
     const collection = db.collection('prints');
 
     const prints = await collection
@@ -32,7 +16,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json(prints);
   } catch (error) {
-    console.error("Database Error:", error);
+    console.error('Get Prints Error:', error);
     return res.status(500).json({
       error: 'Internal Server Error',
       detail: error instanceof Error ? error.message : 'Unknown server error',
