@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useMutation, useQueries, useQueryClient } from '@tanstack/react-query';
 import { MessageSquare, RotateCcw, Shield, Link, Trash2, Send } from "lucide-react";
 import { Contextualfilter } from './Contextualfilter';
 import { getCurrentUser, getAuthHeaders } from '../lib/auth';
@@ -9,11 +10,9 @@ export const Mainfeed = ({ showFilter = true }) => {
 
   const [expanded, setExpanded] = useState({});
   const [openViewpoints, setOpenViewpoints] = useState({});
-  const [viewpointsByPrint, setViewpointsByPrint] = useState({});
   const [viewpointDrafts, setViewpointDrafts] = useState({});
-  const [loadingViewpoints, setLoadingViewpoints] = useState({});
-  const [submittingViewpoints, setSubmittingViewpoints] = useState({});
-  const [viewpointErrors, setViewpointErrors] = useState({});
+  const [submittingPrintId, setSubmittingPrintId] = useState('');
+  const queryClient = useQueryClient();
 
   // Run this the moment the feed loads
   useEffect(() => {
@@ -37,46 +36,6 @@ export const Mainfeed = ({ showFilter = true }) => {
     fetchPrints();
   }, []);
 
-  useEffect(() => {
-    const openPrintIds = Object.entries(openViewpoints)
-      .filter(([, isOpen]) => isOpen)
-      .map(([printId]) => printId);
-
-    if (openPrintIds.length === 0) {
-      return undefined;
-    }
-
-    const refreshOpenViewpoints = async () => {
-      if (document.visibilityState === 'hidden') {
-        return;
-      }
-
-      await Promise.all(openPrintIds.map((printId) => loadViewpoints(printId, true)));
-    };
-
-    refreshOpenViewpoints();
-    const intervalId = window.setInterval(refreshOpenViewpoints, 8000);
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        refreshOpenViewpoints();
-      }
-    };
-
-    window.addEventListener('focus', refreshOpenViewpoints);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.clearInterval(intervalId);
-      window.removeEventListener('focus', refreshOpenViewpoints);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [openViewpoints, viewpointsByPrint]);
-
-  if (isLoading) {
-    return <div className="text-[#D92D20] font-serif italic text-xl animate-pulse">Running the presses...</div>;
-  }
-
   const toggleExpand = (id) => {
     setExpanded((s) => ({ ...s, [id]: !s[id] }));
   };
@@ -86,32 +45,88 @@ export const Mainfeed = ({ showFilter = true }) => {
     return typeof print._id === 'object' && print._id.$oid ? print._id.$oid : String(print._id);
   };
 
-  const loadViewpoints = async (printId, force = false) => {
-    if (!printId || loadingViewpoints[printId] || (!force && viewpointsByPrint[printId])) {
-      return;
+  const fetchViewpoints = async (printId) => {
+    const response = await fetch(`/api/get-viewpoints?printId=${encodeURIComponent(printId)}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Failed to load viewpoints'));
     }
 
-    setLoadingViewpoints((state) => ({ ...state, [printId]: true }));
-    setViewpointErrors((state) => ({ ...state, [printId]: '' }));
-
-    try {
-      const response = await fetch(`/api/get-viewpoints?printId=${encodeURIComponent(printId)}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Failed to load viewpoints'));
-      }
-
-      setViewpointsByPrint((state) => ({ ...state, [printId]: data }));
-    } catch (error) {
-      console.error('Failed to load viewpoints', error);
-      setViewpointErrors((state) => ({ ...state, [printId]: error instanceof Error ? error.message : 'Failed to load viewpoints' }));
-    } finally {
-      setLoadingViewpoints((state) => ({ ...state, [printId]: false }));
-    }
+    return data;
   };
 
-  const toggleViewpoints = async (print) => {
+  const openPrintIds = Object.entries(openViewpoints)
+    .filter(([, isOpen]) => isOpen)
+    .map(([printId]) => printId);
+
+  const viewpointQueries = useQueries({
+    queries: openPrintIds.map((printId) => ({
+      queryKey: ['viewpoints', printId],
+      queryFn: () => fetchViewpoints(printId),
+      enabled: Boolean(printId),
+      refetchInterval: 8000,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: true,
+      staleTime: 2000,
+    })),
+  });
+
+  const viewpointsByPrint = {};
+  const viewpointMetaByPrint = {};
+
+  openPrintIds.forEach((printId, index) => {
+    const query = viewpointQueries[index];
+    viewpointsByPrint[printId] = query?.data || [];
+    viewpointMetaByPrint[printId] = {
+      isLoading: Boolean(query?.isLoading || query?.isFetching),
+      error: query?.error instanceof Error ? query.error.message : '',
+    };
+  });
+
+  const createViewpointMutation = useMutation({
+    mutationFn: async ({ printId, content }) => {
+      const response = await fetch('/api/create-viewpoint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ printId, content }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Failed to add viewpoint'));
+      }
+
+      return data.viewpoint;
+    },
+    onSuccess: (newViewpoint, variables) => {
+      setViewpointDrafts((state) => ({ ...state, [variables.printId]: '' }));
+
+      queryClient.setQueryData(['viewpoints', variables.printId], (current = []) => [
+        ...current,
+        newViewpoint,
+      ]);
+
+      setPrints((state) => state.map((item) => {
+        const itemId = getPrintId(item);
+        if (itemId !== variables.printId) return item;
+
+        return {
+          ...item,
+          viewpoints: Number(item.viewpoints || 0) + 1,
+        };
+      }));
+    },
+  });
+
+  if (isLoading) {
+    return <div className="text-[#D92D20] font-serif italic text-xl animate-pulse">Running the presses...</div>;
+  }
+
+  const toggleViewpoints = (print) => {
     const printId = getPrintId(print);
     if (!printId) return;
 
@@ -119,8 +134,6 @@ export const Mainfeed = ({ showFilter = true }) => {
       const next = !state[printId];
       return { ...state, [printId]: next };
     });
-
-    await loadViewpoints(printId, true);
   };
 
   const submitViewpoint = async (print) => {
@@ -136,43 +149,15 @@ export const Mainfeed = ({ showFilter = true }) => {
     const content = (viewpointDrafts[printId] || '').trim();
     if (!content) return;
 
-    setSubmittingViewpoints((state) => ({ ...state, [printId]: true }));
-    setViewpointErrors((state) => ({ ...state, [printId]: '' }));
+    setSubmittingPrintId(printId);
 
     try {
-      const response = await fetch('/api/create-viewpoint', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthHeaders(),
-        },
-        body: JSON.stringify({ printId, content }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Failed to add viewpoint'));
-      }
-
-      setViewpointDrafts((state) => ({ ...state, [printId]: '' }));
-      setViewpointsByPrint((state) => ({
-        ...state,
-        [printId]: [...(state[printId] || []), data.viewpoint],
-      }));
-      setPrints((state) => state.map((item) => {
-        const itemId = getPrintId(item);
-        if (itemId !== printId) return item;
-
-        return {
-          ...item,
-          viewpoints: Number(item.viewpoints || 0) + 1,
-        };
-      }));
+      await createViewpointMutation.mutateAsync({ printId, content });
     } catch (error) {
       console.error('Failed to submit viewpoint', error);
-      setViewpointErrors((state) => ({ ...state, [printId]: error instanceof Error ? error.message : 'Failed to add viewpoint' }));
+      alert(error instanceof Error ? error.message : 'Failed to add viewpoint');
     } finally {
-      setSubmittingViewpoints((state) => ({ ...state, [printId]: false }));
+      setSubmittingPrintId('');
     }
   };
 
@@ -185,6 +170,7 @@ export const Mainfeed = ({ showFilter = true }) => {
         const printId = getPrintId(print);
         const printViewpoints = viewpointsByPrint[printId] || [];
         const viewpointsCount = Number(print.viewpoints || 0);
+        const viewpointMeta = viewpointMetaByPrint[printId] || { isLoading: false, error: '' };
 
         return (
         <article key={printId || print._id} className="group border border-[#ECECEC] bg-[#FAFAFA] p-6 md:p-7 hover:border-[#111111] transition-colors">
@@ -289,12 +275,12 @@ export const Mainfeed = ({ showFilter = true }) => {
               <div className="flex items-center justify-between gap-4">
                 <h3 className="text-[10px] uppercase tracking-[0.3em] font-black text-[#D92D20]">Viewpoints</h3>
                 <span className="text-[10px] uppercase tracking-[0.25em] text-[#8f8f8f]">
-                  {loadingViewpoints[printId] ? 'Loading...' : `${printViewpoints.length} comment${printViewpoints.length === 1 ? '' : 's'}`}
+                  {viewpointMeta.isLoading ? 'Loading...' : `${printViewpoints.length} comment${printViewpoints.length === 1 ? '' : 's'}`}
                 </span>
               </div>
 
-              {viewpointErrors[printId] ? (
-                <p className="text-sm text-[#D92D20]">{viewpointErrors[printId]}</p>
+              {viewpointMeta.error ? (
+                <p className="text-sm text-[#D92D20]">{viewpointMeta.error}</p>
               ) : null}
 
               <div className="space-y-3">
@@ -313,7 +299,7 @@ export const Mainfeed = ({ showFilter = true }) => {
                     </div>
                     <p className="text-sm leading-relaxed text-[#444444] whitespace-pre-wrap wrap-break-word">{viewpoint.content}</p>
                   </div>
-                )) : (!loadingViewpoints[printId] && (
+                )) : (!viewpointMeta.isLoading && (
                   <p className="text-sm text-[#8f8f8f] italic">No viewpoints yet. Start the discussion.</p>
                 ))}
               </div>
@@ -323,7 +309,7 @@ export const Mainfeed = ({ showFilter = true }) => {
                   value={viewpointDrafts[printId] || ''}
                   onChange={(e) => setViewpointDrafts((state) => ({ ...state, [printId]: e.target.value }))}
                   placeholder={getCurrentUser() ? 'Add your viewpoint...' : 'Sign in to add a viewpoint'}
-                  disabled={submittingViewpoints[printId] || !getCurrentUser()}
+                  disabled={submittingPrintId === printId || !getCurrentUser()}
                   className="w-full min-h-24 resize-none border border-[#ECECEC] bg-[#FAFAFA] p-3 text-sm text-[#111111] placeholder-[#8f8f8f] focus:border-[#111111] focus:ring-0 disabled:opacity-60"
                 />
                 <div className="flex items-center justify-between gap-4">
@@ -332,10 +318,10 @@ export const Mainfeed = ({ showFilter = true }) => {
                   </p>
                   <button
                     onClick={() => submitViewpoint(print)}
-                    disabled={submittingViewpoints[printId] || !getCurrentUser() || !(viewpointDrafts[printId] || '').trim()}
+                    disabled={submittingPrintId === printId || !getCurrentUser() || !(viewpointDrafts[printId] || '').trim()}
                     className="inline-flex items-center gap-2 bg-[#111111] text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#D92D20] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send size={13} /> {submittingViewpoints[printId] ? 'Posting...' : 'Post Viewpoint'}
+                    <Send size={13} /> {submittingPrintId === printId ? 'Posting...' : 'Post Viewpoint'}
                   </button>
                 </div>
               </div>
