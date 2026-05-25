@@ -39,7 +39,7 @@ export default function Navbar({
 
           <button
             onClick={() => setIsWriting(!isWriting)}
-            className="flex items-center gap-2 bg-[#111111] text-[#FAFAFA] px-4 md:px-6 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#D92D20] transition-colors"
+            className="flex items-center gap-2 bg-[#D92D20] text-[#FAFAFA] px-4 md:px-6 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#D92D20] transition-colors"
           >
             {isWriting ? (
               <>
