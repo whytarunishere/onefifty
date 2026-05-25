@@ -92,7 +92,7 @@ export default function Dashboard() {
       />
 
       <main className="px-4 md:px-8 py-6 md:py-8">
-        <div className="mx-auto max-w-345">
+        <div className="mx-auto" style={{ maxWidth: '1380px' }}>
           <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_340px] items-start">
             <aside className="border border-[#ECECEC] bg-white p-5 md:p-6 lg:sticky lg:top-24">
               <h2 className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D92D20] mb-4">

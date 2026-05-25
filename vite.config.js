@@ -446,6 +446,60 @@ export default defineConfig(({ mode }) => {
                 return
               }
 
+              if (path === '/api/reprint-print' && req.method === 'POST') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const id = body && (body.id || body._id)
+
+                if (!id) {
+                  sendJson(res, 400, { error: 'id is required' })
+                  return
+                }
+
+                let objectId
+                try {
+                  const raw = typeof id === 'object' && id.$oid ? id.$oid : String(id)
+                  objectId = new ObjectId(raw)
+                } catch (error) {
+                  sendJson(res, 400, { error: 'invalid id' })
+                  return
+                }
+
+                const existing = await db.collection('prints').findOne({ _id: objectId })
+                if (!existing) {
+                  sendJson(res, 404, { error: 'Print not found' })
+                  return
+                }
+
+                await db.collection('prints').updateOne(
+                  { _id: objectId },
+                  {
+                    $inc: { reprints: 1 },
+                    $set: {
+                      updated_at: new Date(),
+                      last_reprinted_by: String(payload.sub),
+                    },
+                  }
+                )
+
+                sendJson(res, 200, {
+                  success: true,
+                  reprints: Number(existing.reprints || 0) + 1,
+                })
+                return
+              }
+
               if (path === '/api/update-print' && req.method === 'PATCH') {
                 if (!env.JWT_SECRET) {
                   sendJson(res, 500, { error: 'JWT_SECRET is not configured' })

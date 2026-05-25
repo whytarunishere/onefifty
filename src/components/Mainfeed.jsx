@@ -150,6 +150,26 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
     },
   });
 
+  const reprintMutation = useMutation({
+    mutationFn: async (printId) => {
+      const response = await fetch('/api/reprint-print', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders(),
+        },
+        body: JSON.stringify({ id: printId }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Failed to reprint'));
+      }
+
+      return data.reprints;
+    },
+  });
+
   const updatePrintMutation = useMutation({
     mutationFn: async ({ id, headline, content }) => {
       const response = await fetch('/api/update-print', {
@@ -226,6 +246,31 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
       alert(error instanceof Error ? error.message : 'Failed to add viewpoint');
     } finally {
       setSubmittingPrintId('');
+    }
+  };
+
+  const handleReprint = async (printId) => {
+    if (!currentUser) {
+      alert('Please sign in to reprint a story.');
+      return;
+    }
+
+    try {
+      const nextReprints = await reprintMutation.mutateAsync(printId);
+
+      setPrints((state) => state.map((item) => {
+        const itemId = getId(item._id);
+        if (itemId !== printId) return item;
+
+        return {
+          ...item,
+          reprints: nextReprints,
+        };
+      }));
+
+      queryClient.invalidateQueries({ queryKey: ['trending-prints'] });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Failed to reprint');
     }
   };
 
@@ -425,7 +470,11 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
             )}
 
             <div className="flex flex-wrap items-center gap-6 text-[10px] font-black tracking-widest text-[#6b6b6b] pt-1 mt-2">
-              <button className="flex items-center gap-2 hover:text-[#111111] transition-colors">
+              <button
+                onClick={() => handleReprint(printId)}
+                disabled={reprintMutation.isPending}
+                className="flex items-center gap-2 hover:text-[#111111] transition-colors disabled:opacity-50"
+              >
                 <RotateCcw size={15} /> RE-PRINT ({print.reprints})
               </button>
               <button
