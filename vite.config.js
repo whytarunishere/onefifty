@@ -136,6 +136,7 @@ export default defineConfig(({ mode }) => {
                 const created = await db.collection('users').insertOne({
                   name,
                   email,
+                  profile_photo: null,
                   password_hash: passwordHash,
                   created_at: new Date(),
                   updated_at: new Date(),
@@ -146,7 +147,7 @@ export default defineConfig(({ mode }) => {
                   return
                 }
 
-                const user = { id: created.insertedId.toString(), name, email }
+                const user = { id: created.insertedId.toString(), name, email, profile_photo: null }
                 const token = jwt.sign(
                   { sub: user.id, email: user.email, name: user.name },
                   env.JWT_SECRET,
@@ -188,6 +189,7 @@ export default defineConfig(({ mode }) => {
                   id: foundUser._id.toString(),
                   name: foundUser.name,
                   email: foundUser.email,
+                  profile_photo: foundUser.profile_photo || null,
                 }
 
                 const token = jwt.sign(
@@ -215,7 +217,7 @@ export default defineConfig(({ mode }) => {
                 const payload = verifyAuthToken(token, env.JWT_SECRET)
                 const user = await db.collection('users').findOne(
                   { _id: new ObjectId(String(payload.sub)) },
-                  { projection: { name: 1, email: 1 } }
+                  { projection: { name: 1, email: 1, profile_photo: 1 } }
                 )
 
                 if (!user) {
@@ -228,6 +230,98 @@ export default defineConfig(({ mode }) => {
                     id: user._id.toString(),
                     name: user.name,
                     email: user.email,
+                    profile_photo: user.profile_photo || null,
+                  },
+                })
+                return
+              }
+
+              if (path === '/api/update-profile' && req.method === 'PATCH') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const name = typeof body.name === 'string' ? body.name.trim() : ''
+                const profilePhoto = typeof body.profile_photo === 'string' ? body.profile_photo.trim() : ''
+
+                if (!name) {
+                  sendJson(res, 400, { error: 'name is required' })
+                  return
+                }
+
+                if (name.length > 60) {
+                  sendJson(res, 400, { error: 'name too long' })
+                  return
+                }
+
+                if (profilePhoto.length > 2000000) {
+                  sendJson(res, 400, { error: 'profile photo too large' })
+                  return
+                }
+
+                const userId = new ObjectId(String(payload.sub))
+                const updateResult = await db.collection('users').updateOne(
+                  { _id: userId },
+                  {
+                    $set: {
+                      name,
+                      profile_photo: profilePhoto || null,
+                      updated_at: new Date(),
+                    },
+                  }
+                )
+
+                if (!updateResult.matchedCount) {
+                  sendJson(res, 404, { error: 'User not found' })
+                  return
+                }
+
+                const updated = await db.collection('users').findOne(
+                  { _id: userId },
+                  { projection: { name: 1, email: 1, profile_photo: 1 } }
+                )
+
+                if (!updated) {
+                  sendJson(res, 404, { error: 'User not found' })
+                  return
+                }
+
+                await db.collection('prints').updateMany(
+                  { author_id: String(payload.sub) },
+                  {
+                    $set: {
+                      author_name: name,
+                      author_profile_photo: profilePhoto || null,
+                    },
+                  }
+                )
+
+                await db.collection('viewpoints').updateMany(
+                  { author_id: String(payload.sub) },
+                  {
+                    $set: {
+                      author_name: name,
+                      author_profile_photo: profilePhoto || null,
+                    },
+                  }
+                )
+
+                sendJson(res, 200, {
+                  success: true,
+                  user: {
+                    id: updated._id.toString(),
+                    name: updated.name,
+                    email: updated.email,
+                    profile_photo: updated.profile_photo || null,
                   },
                 })
                 return
@@ -265,11 +359,17 @@ export default defineConfig(({ mode }) => {
                   return
                 }
 
+                const authorUser = await db.collection('users').findOne(
+                  { _id: new ObjectId(String(payload.sub)) },
+                  { projection: { profile_photo: 1 } }
+                )
+
                 const result = await db.collection('prints').insertOne({
                   headline,
                   content,
                   author_name: payload.name || 'Anonymous Contributor',
                   author_id: String(payload.sub),
+                  author_profile_photo: authorUser?.profile_photo || null,
                   is_verified: false,
                   reprints: 0,
                   viewpoints: 0,
@@ -330,6 +430,10 @@ export default defineConfig(({ mode }) => {
                   print_id: objectId.toString(),
                   author_name: payload.name || 'Anonymous Contributor',
                   author_id: String(payload.sub),
+                  author_profile_photo: (await db.collection('users').findOne(
+                    { _id: new ObjectId(String(payload.sub)) },
+                    { projection: { profile_photo: 1 } }
+                  ))?.profile_photo || null,
                   is_verified: false,
                   content,
                   created_at: new Date(),
@@ -339,6 +443,151 @@ export default defineConfig(({ mode }) => {
                 await db.collection('prints').updateOne({ _id: objectId }, { $inc: { viewpoints: 1 } })
 
                 sendJson(res, 200, { success: true, viewpoint: { ...viewpoint, _id: result.insertedId } })
+                return
+              }
+
+              if (path === '/api/update-print' && req.method === 'PATCH') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const id = body && (body.id || body._id)
+                const headline = typeof body.headline === 'string' ? body.headline.trim() : ''
+                const content = typeof body.content === 'string' ? body.content.trim() : ''
+
+                if (!id) {
+                  sendJson(res, 400, { error: 'id is required' })
+                  return
+                }
+
+                if (!headline) {
+                  sendJson(res, 400, { error: 'headline is required' })
+                  return
+                }
+
+                if (headline.length > 100) {
+                  sendJson(res, 400, { error: 'headline too long' })
+                  return
+                }
+
+                if (content.length > 2000) {
+                  sendJson(res, 400, { error: 'content too long' })
+                  return
+                }
+
+                let objectId
+                try {
+                  const raw = typeof id === 'object' && id.$oid ? id.$oid : String(id)
+                  objectId = new ObjectId(raw)
+                } catch (error) {
+                  sendJson(res, 400, { error: 'invalid id' })
+                  return
+                }
+
+                const existing = await db.collection('prints').findOne({ _id: objectId })
+                if (!existing) {
+                  sendJson(res, 404, { error: 'Print not found' })
+                  return
+                }
+
+                if (String(existing.author_id) !== String(payload.sub)) {
+                  sendJson(res, 403, { error: 'Forbidden' })
+                  return
+                }
+
+                const updatedAt = new Date()
+                await db.collection('prints').updateOne(
+                  { _id: objectId },
+                  { $set: { headline, content, updated_at: updatedAt } }
+                )
+
+                sendJson(res, 200, {
+                  success: true,
+                  print: {
+                    ...existing,
+                    headline,
+                    content,
+                    updated_at: updatedAt,
+                  },
+                })
+                return
+              }
+
+              if (path === '/api/update-viewpoint' && req.method === 'PATCH') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const id = body && (body.id || body._id)
+                const content = typeof body.content === 'string' ? body.content.trim() : ''
+
+                if (!id) {
+                  sendJson(res, 400, { error: 'id is required' })
+                  return
+                }
+
+                if (!content) {
+                  sendJson(res, 400, { error: 'content is required' })
+                  return
+                }
+
+                if (content.length > 1000) {
+                  sendJson(res, 400, { error: 'content too long' })
+                  return
+                }
+
+                let objectId
+                try {
+                  const raw = typeof id === 'object' && id.$oid ? id.$oid : String(id)
+                  objectId = new ObjectId(raw)
+                } catch (error) {
+                  sendJson(res, 400, { error: 'invalid id' })
+                  return
+                }
+
+                const existing = await db.collection('viewpoints').findOne({ _id: objectId })
+                if (!existing) {
+                  sendJson(res, 404, { error: 'Viewpoint not found' })
+                  return
+                }
+
+                if (String(existing.author_id) !== String(payload.sub)) {
+                  sendJson(res, 403, { error: 'Forbidden' })
+                  return
+                }
+
+                const updatedAt = new Date()
+                await db.collection('viewpoints').updateOne(
+                  { _id: objectId },
+                  { $set: { content, updated_at: updatedAt } }
+                )
+
+                sendJson(res, 200, {
+                  success: true,
+                  viewpoint: {
+                    ...existing,
+                    content,
+                    updated_at: updatedAt,
+                  },
+                })
                 return
               }
 

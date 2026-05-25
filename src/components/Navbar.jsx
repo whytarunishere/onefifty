@@ -7,6 +7,7 @@ export default function Navbar({
   setIsWriting,
   logoTo = "/dashboard",
   userName,
+  userPhoto,
   onLogout,
 }) {
   return (
@@ -18,9 +19,22 @@ export default function Navbar({
 
         <div className="flex items-center gap-3 md:gap-4 ml-auto">
           {userName ? (
-            <span className="hidden md:inline text-[10px] font-black uppercase tracking-[0.25em] text-[#6b6b6b]">
-              {userName}
-            </span>
+            <div className="hidden md:flex items-center gap-2">
+              {userPhoto ? (
+                <img
+                  src={userPhoto}
+                  alt={userName}
+                  className="w-8 h-8 rounded-full object-cover border border-[#ECECEC]"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full border border-[#ECECEC] bg-[#111111] text-white flex items-center justify-center font-serif text-sm">
+                  {String(userName).charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#6b6b6b]">
+                {userName}
+              </span>
+            </div>
           ) : null}
 
           <button

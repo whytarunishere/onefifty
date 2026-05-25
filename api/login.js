@@ -30,6 +30,7 @@ export default async function handler(req, res) {
       id: foundUser._id.toString(),
       name: foundUser.name,
       email: foundUser.email,
+      profile_photo: foundUser.profile_photo || null,
     };
 
     const token = signAuthToken(user);

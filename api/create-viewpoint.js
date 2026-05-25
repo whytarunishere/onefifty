@@ -17,6 +17,7 @@ export default async function handler(req, res) {
     const db = await getDb();
     const prints = db.collection('prints');
     const viewpoints = db.collection('viewpoints');
+    const users = db.collection('users');
 
     const printId = req.body && typeof req.body.printId === 'string' ? req.body.printId.trim() : '';
     const content = req.body && typeof req.body.content === 'string' ? req.body.content.trim() : '';
@@ -49,10 +50,16 @@ export default async function handler(req, res) {
       ? payload.name
       : 'Anonymous Contributor';
 
+    const authorUser = await users.findOne(
+      { _id: new ObjectId(String(payload.sub)) },
+      { projection: { profile_photo: 1 } }
+    );
+
     const viewpoint = {
       print_id: objectId.toString(),
       author_name: userName,
       author_id: String(payload.sub),
+      author_profile_photo: authorUser?.profile_photo || null,
       is_verified: false,
       content,
       created_at: new Date(),

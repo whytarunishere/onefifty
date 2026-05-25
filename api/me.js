@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     const user = await db.collection('users').findOne(
       { _id: new ObjectId(String(payload.sub)) },
-      { projection: { name: 1, email: 1 } }
+      { projection: { name: 1, email: 1, profile_photo: 1 } }
     );
 
     if (!user) {
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
         id: user._id.toString(),
         name: user.name,
         email: user.email,
+        profile_photo: user.profile_photo || null,
       },
     });
   } catch (error) {

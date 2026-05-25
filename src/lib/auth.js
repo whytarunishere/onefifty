@@ -40,6 +40,10 @@ function persistSession({ user, token }) {
   writeJson(CURRENT_USER_KEY, user);
 }
 
+export function setCurrentUser(user) {
+  writeJson(CURRENT_USER_KEY, user);
+}
+
 export async function signup({ name, email, password }) {
   const response = await fetch('/api/signup', {
     method: 'POST',
@@ -89,6 +93,28 @@ export async function validateSession() {
   }
 
   const data = await response.json();
+  writeJson(CURRENT_USER_KEY, data.user);
+  return data.user;
+}
+
+export async function updateProfile({ name, profilePhoto }) {
+  const response = await fetch('/api/update-profile', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+    },
+    body: JSON.stringify({
+      name,
+      profile_photo: profilePhoto || '',
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.detail ? `${data.error}: ${data.detail}` : (data.error || 'Profile update failed'));
+  }
+
   writeJson(CURRENT_USER_KEY, data.user);
   return data.user;
 }

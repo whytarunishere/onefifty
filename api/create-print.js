@@ -1,4 +1,5 @@
 import { getDb } from './_lib/db.js';
+import { ObjectId } from 'mongodb';
 import { parseBearerToken, verifyAuthToken } from './_lib/auth.js';
 
 export default async function handler(req, res) {
@@ -15,6 +16,7 @@ export default async function handler(req, res) {
     const payload = verifyAuthToken(token);
     const db = await getDb();
     const collection = db.collection('prints');
+    const users = db.collection('users');
 
     // Validate body
     const headline = req.body && typeof req.body.headline === 'string' ? req.body.headline.trim() : '';
@@ -37,11 +39,17 @@ export default async function handler(req, res) {
       ? payload.name
       : 'Anonymous Contributor';
 
+    const authorUser = await users.findOne(
+      { _id: new ObjectId(String(payload.sub)) },
+      { projection: { profile_photo: 1 } }
+    );
+
     const newPrint = {
       headline,
       content,
       author_name: userName,
       author_id: String(payload.sub),
+      author_profile_photo: authorUser?.profile_photo || null,
       is_verified: false,
       reprints: 0,
       viewpoints: 0,

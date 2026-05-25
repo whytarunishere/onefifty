@@ -33,6 +33,7 @@ export default async function handler(req, res) {
     const insertResult = await usersCollection.insertOne({
       name: String(name).trim(),
       email: normalizedEmail,
+      profile_photo: null,
       password_hash: passwordHash,
       created_at: now,
       updated_at: now,
@@ -42,6 +43,7 @@ export default async function handler(req, res) {
       id: insertResult.insertedId.toString(),
       name: String(name).trim(),
       email: normalizedEmail,
+      profile_photo: null,
     };
 
     const token = signAuthToken(user);
