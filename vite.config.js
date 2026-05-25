@@ -85,6 +85,31 @@ export default defineConfig(({ mode }) => {
                 return
               }
 
+              if (path === '/api/get-viewpoints' && req.method === 'GET') {
+                const printId = new URL(req.url, 'http://localhost').searchParams.get('printId')?.trim() || ''
+
+                if (!printId) {
+                  sendJson(res, 400, { error: 'printId is required' })
+                  return
+                }
+
+                let objectId
+                try {
+                  objectId = new ObjectId(printId)
+                } catch (error) {
+                  sendJson(res, 400, { error: 'invalid printId' })
+                  return
+                }
+
+                const viewpoints = await db.collection('viewpoints')
+                  .find({ print_id: objectId.toString() })
+                  .sort({ created_at: 1 })
+                  .toArray()
+
+                sendJson(res, 200, viewpoints)
+                return
+              }
+
               if (path === '/api/signup' && req.method === 'POST') {
                 const body = await readJsonBody(req)
                 const name = typeof body.name === 'string' ? body.name.trim() : ''
@@ -252,6 +277,68 @@ export default defineConfig(({ mode }) => {
                 })
 
                 sendJson(res, 200, { success: true, printId: result.insertedId })
+                return
+              }
+
+              if (path === '/api/create-viewpoint' && req.method === 'POST') {
+                if (!env.JWT_SECRET) {
+                  sendJson(res, 500, { error: 'JWT_SECRET is not configured' })
+                  return
+                }
+
+                const token = parseBearerToken(req)
+                if (!token) {
+                  sendJson(res, 401, { error: 'Unauthorized' })
+                  return
+                }
+
+                const payload = verifyAuthToken(token, env.JWT_SECRET)
+                const body = await readJsonBody(req)
+                const printId = typeof body.printId === 'string' ? body.printId.trim() : ''
+                const content = typeof body.content === 'string' ? body.content.trim() : ''
+
+                if (!printId) {
+                  sendJson(res, 400, { error: 'printId is required' })
+                  return
+                }
+
+                if (!content) {
+                  sendJson(res, 400, { error: 'content is required' })
+                  return
+                }
+
+                if (content.length > 1000) {
+                  sendJson(res, 400, { error: 'content too long' })
+                  return
+                }
+
+                let objectId
+                try {
+                  objectId = new ObjectId(printId)
+                } catch (error) {
+                  sendJson(res, 400, { error: 'invalid printId' })
+                  return
+                }
+
+                const print = await db.collection('prints').findOne({ _id: objectId })
+                if (!print) {
+                  sendJson(res, 404, { error: 'Print not found' })
+                  return
+                }
+
+                const viewpoint = {
+                  print_id: objectId.toString(),
+                  author_name: payload.name || 'Anonymous Contributor',
+                  author_id: String(payload.sub),
+                  is_verified: false,
+                  content,
+                  created_at: new Date(),
+                }
+
+                const result = await db.collection('viewpoints').insertOne(viewpoint)
+                await db.collection('prints').updateOne({ _id: objectId }, { $inc: { viewpoints: 1 } })
+
+                sendJson(res, 200, { success: true, viewpoint: { ...viewpoint, _id: result.insertedId } })
                 return
               }
 
