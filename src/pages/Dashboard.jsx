@@ -4,6 +4,7 @@ import { Search, Plus } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { Mainfeed } from '../components/Mainfeed';
 import { Createpost } from '../components/Createpost';
+import { Trending } from '../components/Trending';
 import { getCurrentUser, logout, updateProfile } from '../lib/auth';
 
 const tabs = ['Corroborations', 'Latest', 'Investigations', 'Impact'];
@@ -242,19 +243,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="border border-[#ECECEC] bg-white p-5">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D92D20] mb-4">
-                  Trending
-                </h2>
-                <div className="space-y-4">
-                  {['#CottonScam', '#DigitalPrivacyIndia', '#VaranasiWeavers'].map((tag) => (
-                    <div key={tag} className="border-b border-[#ECECEC] pb-3 last:border-b-0 last:pb-0">
-                      <p className="font-serif text-lg font-bold text-[#111111]">{tag}</p>
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-[#8f8f8f] mt-1">Active now</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Trending />
 
               <div className="border border-[#ECECEC] bg-white p-5">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D92D20] mb-4">
