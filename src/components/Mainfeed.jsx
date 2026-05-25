@@ -37,6 +37,42 @@ export const Mainfeed = ({ showFilter = true }) => {
     fetchPrints();
   }, []);
 
+  useEffect(() => {
+    const openPrintIds = Object.entries(openViewpoints)
+      .filter(([, isOpen]) => isOpen)
+      .map(([printId]) => printId);
+
+    if (openPrintIds.length === 0) {
+      return undefined;
+    }
+
+    const refreshOpenViewpoints = async () => {
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
+
+      await Promise.all(openPrintIds.map((printId) => loadViewpoints(printId, true)));
+    };
+
+    refreshOpenViewpoints();
+    const intervalId = window.setInterval(refreshOpenViewpoints, 8000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshOpenViewpoints();
+      }
+    };
+
+    window.addEventListener('focus', refreshOpenViewpoints);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', refreshOpenViewpoints);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [openViewpoints, viewpointsByPrint]);
+
   if (isLoading) {
     return <div className="text-[#D92D20] font-serif italic text-xl animate-pulse">Running the presses...</div>;
   }
@@ -50,8 +86,8 @@ export const Mainfeed = ({ showFilter = true }) => {
     return typeof print._id === 'object' && print._id.$oid ? print._id.$oid : String(print._id);
   };
 
-  const ensureViewpointsLoaded = async (printId) => {
-    if (!printId || viewpointsByPrint[printId] || loadingViewpoints[printId]) {
+  const loadViewpoints = async (printId, force = false) => {
+    if (!printId || loadingViewpoints[printId] || (!force && viewpointsByPrint[printId])) {
       return;
     }
 
@@ -84,7 +120,7 @@ export const Mainfeed = ({ showFilter = true }) => {
       return { ...state, [printId]: next };
     });
 
-    await ensureViewpointsLoaded(printId);
+    await loadViewpoints(printId, true);
   };
 
   const submitViewpoint = async (print) => {
