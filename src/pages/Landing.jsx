@@ -126,7 +126,7 @@ export default function Landing() {
                             Look at the world’s biggest news organizations. They are massive, highly structured, and heavily influential. Whether they claim independence or not, power concentrated in the hands of a few means they get to decide what you see and how you think. 
                         </p>
                         <p className="text-lg text-gray-300 leading-relaxed font-light">
-                            India is too big, too diverse, and too complex for a top-down media model. We shouldn't have to rely on agencies that prioritize their own lens over our reality. You are smart enough to decide what is right and wrong. You just need the raw, correct facts.
+                            India is too diverse, and too complex for a top-down media model. We shouldn't have to rely on agencies that prioritize their own lens over our reality. You are smart enough to decide what is right and wrong. You just need the raw, correct facts.
                         </p>
                     </div>
                 </div>
