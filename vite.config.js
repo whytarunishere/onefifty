@@ -487,15 +487,34 @@ export default defineConfig(({ mode }) => {
                 const userId = String(payload.sub)
 
                 if (reprintedBy.some((value) => String(value) === userId)) {
-                  sendJson(res, 409, { error: 'You have already reprinted this story' })
+                  const nextReprints = Math.max(0, Number(existing.reprints || 0) - 1)
+
+                  await db.collection('prints').updateOne(
+                    { _id: objectId },
+                    {
+                      $set: {
+                        reprints: nextReprints,
+                        updated_at: new Date(),
+                      },
+                      $pull: { reprinted_by: userId },
+                    }
+                  )
+
+                  sendJson(res, 200, {
+                    success: true,
+                    reprints: nextReprints,
+                    reprinted: false,
+                  })
                   return
                 }
+
+                const nextReprints = Number(existing.reprints || 0) + 1
 
                 await db.collection('prints').updateOne(
                   { _id: objectId },
                   {
-                    $inc: { reprints: 1 },
                     $set: {
+                      reprints: nextReprints,
                       updated_at: new Date(),
                       last_reprinted_by: userId,
                     },
@@ -505,7 +524,8 @@ export default defineConfig(({ mode }) => {
 
                 sendJson(res, 200, {
                   success: true,
-                  reprints: Number(existing.reprints || 0) + 1,
+                  reprints: nextReprints,
+                  reprinted: true,
                 })
                 return
               }

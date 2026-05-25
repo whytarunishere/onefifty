@@ -37,16 +37,34 @@ export default async function handler(req, res) {
 
     const reprintedBy = Array.isArray(existing.reprinted_by) ? existing.reprinted_by : [];
     const userId = String(payload.sub);
+    const hasReprinted = reprintedBy.some((value) => String(value) === userId);
 
-    if (reprintedBy.some((value) => String(value) === userId)) {
-      return res.status(409).json({ error: 'You have already reprinted this story' });
+    if (hasReprinted) {
+      const nextReprints = Math.max(0, Number(existing.reprints || 0) - 1);
+      await prints.updateOne(
+        { _id: objectId },
+        {
+          $set: {
+            reprints: nextReprints,
+            updated_at: new Date(),
+          },
+          $pull: { reprinted_by: userId },
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        reprints: nextReprints,
+        reprinted: false,
+      });
     }
 
+    const nextReprints = Number(existing.reprints || 0) + 1;
     await prints.updateOne(
       { _id: objectId },
       {
-        $inc: { reprints: 1 },
         $set: {
+          reprints: nextReprints,
           updated_at: new Date(),
           last_reprinted_by: userId,
         },
@@ -56,7 +74,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      reprints: Number(existing.reprints || 0) + 1,
+      reprints: nextReprints,
+      reprinted: true,
     });
   } catch (error) {
     console.error('Reprint Error:', error);

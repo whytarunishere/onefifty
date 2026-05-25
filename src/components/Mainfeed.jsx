@@ -256,18 +256,21 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
     }
 
     try {
-      const nextReprints = await reprintMutation.mutateAsync(printId);
+      const result = await reprintMutation.mutateAsync(printId);
 
       setPrints((state) => state.map((item) => {
         const itemId = getId(item._id);
         if (itemId !== printId) return item;
 
+        const currentReprintedBy = Array.isArray(item.reprinted_by) ? item.reprinted_by : [];
+        const userId = String(currentUser.id);
+
         return {
           ...item,
-          reprints: nextReprints,
-          reprinted_by: Array.isArray(item.reprinted_by)
-            ? [...item.reprinted_by, currentUser.id]
-            : [currentUser.id],
+          reprints: result,
+          reprinted_by: result > Number(item.reprints || 0)
+            ? [...currentReprintedBy, userId]
+            : currentReprintedBy.filter((value) => String(value) !== userId),
         };
       }));
 
@@ -393,9 +396,6 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
         const viewpointMeta = viewpointMetaByPrint[printId] || { isLoading: false, error: '' };
         const canEditPrint = currentUser && String(currentUser.id) === String(print.author_id);
         const isEditingPrint = editingPrintId === printId;
-        const alreadyReprinted = currentUser
-          ? Array.isArray(print.reprinted_by) && print.reprinted_by.some((value) => String(value) === String(currentUser.id))
-          : false;
 
         return (
           <article key={printId || `${print.author_id}-${print.created_at}`} className="group border border-[#ECECEC] bg-[#FAFAFA] p-6 md:p-7 hover:border-[#111111] transition-colors">
@@ -478,14 +478,11 @@ export const Mainfeed = ({ showFilter = true, profileVersion = 0 }) => {
             <div className="flex flex-wrap items-center gap-6 text-[10px] font-black tracking-widest text-[#6b6b6b] pt-1 mt-2">
               <button
                 onClick={() => handleReprint(printId)}
-                disabled={reprintMutation.isPending || alreadyReprinted}
+                disabled={reprintMutation.isPending}
                 className="flex items-center gap-2 hover:text-[#111111] transition-colors disabled:opacity-50"
               >
                 <RotateCcw size={15} /> RE-PRINT ({print.reprints})
               </button>
-              {alreadyReprinted ? (
-                <span className="text-[10px] uppercase tracking-[0.2em] text-[#8f8f8f]">Already reprinted</span>
-              ) : null}
               <button
                 onClick={() => toggleViewpoints(printId)}
                 className="flex items-center gap-2 hover:text-[#111111] transition-colors"
