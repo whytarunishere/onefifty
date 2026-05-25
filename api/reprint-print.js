@@ -35,14 +35,22 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: 'Print not found' });
     }
 
+    const reprintedBy = Array.isArray(existing.reprinted_by) ? existing.reprinted_by : [];
+    const userId = String(payload.sub);
+
+    if (reprintedBy.some((value) => String(value) === userId)) {
+      return res.status(409).json({ error: 'You have already reprinted this story' });
+    }
+
     await prints.updateOne(
       { _id: objectId },
       {
         $inc: { reprints: 1 },
         $set: {
           updated_at: new Date(),
-          last_reprinted_by: String(payload.sub),
+          last_reprinted_by: userId,
         },
+        $addToSet: { reprinted_by: userId },
       }
     );
 

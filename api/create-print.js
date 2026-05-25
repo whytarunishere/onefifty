@@ -52,6 +52,7 @@ export default async function handler(req, res) {
       author_profile_photo: authorUser?.profile_photo || null,
       is_verified: false,
       reprints: 0,
+      reprinted_by: [],
       viewpoints: 0,
       created_at: new Date(),
     };

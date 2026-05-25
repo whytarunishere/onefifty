@@ -372,6 +372,7 @@ export default defineConfig(({ mode }) => {
                   author_profile_photo: authorUser?.profile_photo || null,
                   is_verified: false,
                   reprints: 0,
+                  reprinted_by: [],
                   viewpoints: 0,
                   created_at: new Date(),
                 })
@@ -482,14 +483,23 @@ export default defineConfig(({ mode }) => {
                   return
                 }
 
+                const reprintedBy = Array.isArray(existing.reprinted_by) ? existing.reprinted_by : []
+                const userId = String(payload.sub)
+
+                if (reprintedBy.some((value) => String(value) === userId)) {
+                  sendJson(res, 409, { error: 'You have already reprinted this story' })
+                  return
+                }
+
                 await db.collection('prints').updateOne(
                   { _id: objectId },
                   {
                     $inc: { reprints: 1 },
                     $set: {
                       updated_at: new Date(),
-                      last_reprinted_by: String(payload.sub),
+                      last_reprinted_by: userId,
                     },
+                    $addToSet: { reprinted_by: userId },
                   }
                 )
 
