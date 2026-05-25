@@ -11,10 +11,10 @@ export default function Navbar({
   onLogout,
 }) {
   return (
-    <div className="sticky top-0 z-50 w-full bg-[#FAFAFA]/95 backdrop-blur border-b-2 border-[#111111] text-[#111111]">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 py-3 gap-4">
+    <div className="sticky top-0 z-50 w-full bg-[#FAFAFA]/95 backdrop-blur border-b-1 border-[#e6e1e1] text-[#111111]">
+      <div className="max-w-8xl mx-auto flex items-center justify-between px-4 md:px-8 py-0 gap-4">
         <Link to={logoTo} className="shrink-0">
-          <img src={logo} alt="Logo" className="h-12 md:h-14 w-auto brightness-0" />
+          <img src={logo} alt="Logo" className="h-12 md:h-16 w-auto brightness-0" />
         </Link>
 
         <div className="flex items-center gap-3 md:gap-4 ml-auto">

@@ -91,13 +91,13 @@ export default function Dashboard() {
         userPhoto={user?.profile_photo}
         onLogout={handleLogout}
       />
-
+      
       <main className="px-4 md:px-8 py-6 md:py-8">
         <div className="mx-auto" style={{ maxWidth: '1380px' }}>
-          <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)_340px] items-start">
-            <aside className="border border-[#ECECEC] bg-white p-5 md:p-6 lg:sticky lg:top-24">
-              <h2 className="text-[10px] font-black uppercase tracking-[0.35em] text-[#D92D20] mb-4">
-                Profile Related Settings
+          <div className="grid gap-3 lg:grid-cols-[250px_minmax(0,1fr)_360px] items-start">
+            <aside className="border border-[#ECECEC] bg-white p-4 md:p-5 lg:sticky lg:top-24">
+              <h2 className="text-[20px] font-semibold uppercase tracking-[0.3em] text-[#D92D20] mb-4">
+                Profile
               </h2>
 
               <div className="space-y-4">
@@ -231,7 +231,7 @@ export default function Dashboard() {
             </section>
 
             <aside className="space-y-4 lg:sticky lg:top-24">
-              <div className="border border-[#ECECEC] bg-white p-4 md:p-5">
+              <div className="border border-[#ECECEC] bg-white p-4 md:p-4.5">
                 <div className="flex items-center gap-3 border border-[#ECECEC] bg-[#FAFAFA] px-4 py-3">
                   <Search size={16} className="shrink-0 text-[#6b6b6b]" />
                   <input

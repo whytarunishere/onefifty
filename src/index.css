@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -15,8 +15,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3 {
-  font-family: 'Playfair Display', serif;
+html, body, button, input, textarea, select {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
 }
 
 @layer base {
@@ -55,7 +59,7 @@ h1, h2, h3 {
   /* Target the specific class from the typewriter library */
   .Typewriter__cursor {
     display: inline-block;
-    font-family: monospace;
+    font-family: inherit;
     color: white;
     font-weight: 100; /* Thin cursor looks better with bold text */
     margin-left: 4px;
@@ -63,7 +67,7 @@ h1, h2, h3 {
   }
 
 .font-news{
-    font-family: monospace;
+    font-family: inherit;
     font-weight: 500;
 }
 @layer utilities {
